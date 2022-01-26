@@ -9,6 +9,7 @@ const MAXWIDTH = 16;
 //  - ENTERing numbers to the the RIGHT-hand-side of the expression
 // key presses can cause a change to that STATE and/or to the values of the
 // LHS and RHS of the expression and the OPerator between them.
+
 let STATE = "AWAIT-LEFT"; // what state is the calculator in?
 let LHS = "0"; // what's the left-hand-side of the current expression?
 let OP = ""; // what's the operator in the current expression?
@@ -75,21 +76,10 @@ const updateDisplay = function() {
   console.log(displayContent)
 };
 
-const getKeyClass = function(key) {
-  if (key === "clear") {
-    return "clear";
-  };
-  if (EDITS.includes(key)) {
-    return "edit";
-  };
-  if (OPS.includes(key)) {
-    return "op";
-  };
-  if (EVALS.includes(key)) {
-    return "eval";
-  };
-  throw new Error(`class of key ${key} not understood`);
-};
+//
+// Core logic is in these four runKeypress functions,
+//  one for each STATE of the machine
+//
 
 const runKeypressAwaitLeft = function(key, keyClass) {
   switch (keyClass) {
@@ -161,6 +151,26 @@ const runKeypressEnterRight = function(key, keyClass) {
   };
 };
 
+const getKeyClass = function(key) {
+  if (key === "clear") {
+    return "clear";
+  };
+  if (EDITS.includes(key)) {
+    return "edit";
+  };
+  if (OPS.includes(key)) {
+    return "op";
+  };
+  if (EVALS.includes(key)) {
+    return "eval";
+  };
+  throw new Error(`class of key ${key} not understood`);
+};
+
+//
+// These functions handle logic for ops
+//
+
 const opFrom = function(str) {
   if (str.length > 1) {
     throw new Error(`bad op string ${str}`);
@@ -185,6 +195,26 @@ const multiply = function(lhs, rhs) {
 const divide = function(lhs, rhs) {
   return +lhs / +rhs;
 };
+
+const operate = function(op, lhs, rhs) {
+  switch (op) {
+    case "+":
+      return toString(add(lhs, rhs));
+    case "-":
+      return toString(subtract(lhs, rhs));
+    case "*":
+      return toString(multiply(lhs, rhs));
+    case "/":
+      return toString(divide(lhs, rhs));
+    default:
+      throw new Error(`did not understand op ${op}`);
+  };
+};
+
+//
+// updateString, toString, and handleOverflow
+//  connect the Number op output to Strings for display
+//
 
 const updateString = function(current, k) {
   let out;
@@ -242,20 +272,9 @@ const handleOverflow = function(stringNum) {
   };
 };
 
-const operate = function(op, lhs, rhs) {
-  switch (op) {
-    case "+":
-      return toString(add(lhs, rhs));
-    case "-":
-      return toString(subtract(lhs, rhs));
-    case "*":
-      return toString(multiply(lhs, rhs));
-    case "/":
-      return toString(divide(lhs, rhs));
-    default:
-      throw new Error(`did not understand op ${op}`);
-  };
-};
+//
+// Connect to DOM for button definition
+//
 
 const DISPLAY = document.querySelector(".display");
 const buttons = document.querySelectorAll(".button");
